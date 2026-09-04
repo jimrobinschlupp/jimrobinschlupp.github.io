@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What is actually inside a Snapchat Memories export</title>
+<meta name="description" content="What arrives when you export your Snapchat Memories, and what is wrong with it: no capture dates on any file, captions as separate transparent images, video stored rotated, and a count that comes up short with nothing to explain it.">
+<link rel="canonical" href="https://jimrobinschlupp.com/snapchat-memories-export/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="What is actually inside a Snapchat Memories export">
+<meta property="og:description" content="No capture dates on any file. Captions as separate transparent images. A count that comes up short, with nothing anywhere to explain it.">
+<meta property="og:url" content="https://jimrobinschlupp.com/snapchat-memories-export/">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index,follow,max-image-preview:large">
+
+<!-- The site's own faces, self-hosted, same files the app pages use. This page
+     is deliberately standalone: no bundle, no JavaScript, nothing to render
+     before a crawler can read it. That is the entire reason it lives in
+     public/ at a real path rather than behind the orbit's hash router. -->
+<style>
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Jost-VF-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+                 U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Jost-VF-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB,
+                 U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/SpaceMono-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+                 U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Mirrors the am- page tokens value for value, so arriving here from the
+   orbit is not a change of tone. The one difference is that a standalone
+   page has no theme toggle to read, so dark follows the system. */
+:root {
+  --bg: #f7f7f5;
+  --ink: #1a1a1a;
+  --hair: #dedace;
+  --muted: #71695c;
+  --faint: #9b937f;
+  --elev: #ffffff;
+  --amber: #a9701f;        /* darkened until it passes on paper */
+  --amber-line: #d79b46;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0a;
+    --ink: #eceae4;
+    --hair: #2c2a26;
+    --muted: #9a9488;
+    --faint: #6f695d;
+    --elev: #141414;
+    --amber: #e3a04a;      /* the app's own value, on ink */
+    --amber-line: #8a6127;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Jost", system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 18px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+.measure { max-width: 42rem; margin-inline: auto; }  /* ~70 characters, centred */
+
+/* ---- the name ----
+   Lifted from App.css so it is the same object in the same place: fixed at
+   top 28px / left 36px, Jost 1.05rem uppercase, and the per-letter cell trick
+   that lets the hover reach real bold without moving anything. Each letter has
+   an invisible sizer holding the cell's width at the resting weight, and a
+   visible glyph painted on top, outside the layout, which is what animates.
+   No bar and no rule beneath it: the name sits far enough left of a centred
+   column that it never has to be fenced off from the text. */
+.wordmark-anchor {
+  position: fixed;
+  top: calc(28px + (35px - 1.05rem) / 2);
+  left: 36px;
+  z-index: 62;
+  transition: opacity .3s ease, color .3s ease;
+}
+.wordmark {
+  --wm-track: 0.18em;
+  font-family: "Jost", system-ui, sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  font-weight: 400;
+  white-space: nowrap;
+  color: inherit;
+  text-decoration: none;
+  background: none; border: 0; padding: 0; margin: 0;
+}
+.wordmark__cell { position: relative; display: inline-block; }
+.wordmark__sizer { visibility: hidden; letter-spacing: var(--wm-track); }
+.wordmark__glyph {
+  position: absolute; left: 0; top: 0;
+  font-variation-settings: "wght" 400;
+  transition: font-variation-settings .3s ease;
+}
+@media (hover: hover) {
+  .wordmark:hover .wordmark__glyph { font-variation-settings: "wght" 600; }
+}
+.wordmark:focus-visible { outline: 1px solid var(--amber-line); outline-offset: 6px; }
+@media (max-width: 760px) { .wordmark-anchor { left: 28px; } }
+
+/* ---- title block ---- */
+.lede { padding: 104px 0 44px; border-bottom: 1px solid var(--hair); }
+h1 {
+  font-weight: 200;
+  font-size: clamp(34px, 6vw, 62px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin: 0 0 26px;
+  max-width: 20ch;
+}
+.standfirst { font-size: clamp(19px, 2.2vw, 23px); color: var(--muted); font-weight: 300; margin: 0; }
+
+/* ---- body ---- */
+article { padding: 8px 0 0; }
+section { padding: 44px 0; border-bottom: 1px solid var(--hair); }
+h2 {
+  font-weight: 300;
+  font-size: clamp(24px, 3.2vw, 33px);
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  margin: 0 0 18px;
+  max-width: 24ch;
+}
+h2 .n {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 12px; letter-spacing: 0.1em;
+  color: var(--amber);
+  display: block; margin-bottom: 12px; font-weight: 400;
+}
+p { margin: 0 0 18px; }
+p:last-child { margin-bottom: 0; }
+strong { font-weight: 500; }
+em { font-style: italic; color: var(--muted); }
+code {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.86em;
+  background: var(--elev);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1px 5px;
+  word-break: break-word;
+}
+ul { margin: 0 0 18px; padding-left: 1.1em; }
+li { margin-bottom: 9px; }
+li::marker { color: var(--faint); }
+
+/* the one raised element: a correction we owe the reader */
+.admission {
+  background: var(--elev);
+  border: 1px solid var(--hair);
+  border-left: 2px solid var(--amber-line);
+  border-radius: 3px;
+  padding: 22px 24px;
+  margin: 26px 0 0;
+}
+.admission .eyebrow { margin-bottom: 10px; display: block; }
+
+/* the abstract: the whole page, for someone who will not read the page */
+.tldr {
+  background: var(--elev);
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+  padding: 24px 26px;
+  margin: 34px 0 0;
+}
+.tldr .eyebrow { display: block; margin-bottom: 14px; }
+.tldr ul { margin: 0; padding-left: 1.05em; }
+.tldr li { margin-bottom: 10px; }
+.tldr li:last-child { margin-bottom: 0; }
+
+/* Disclosure, not a pitch. A reader deciding whether to trust this deserves to
+   know upfront that the person explaining the problem also sells a solution.
+   Deliberately outside the abstract box and deliberately quiet: it belongs to
+   the reader's judgement, not to the argument. */
+.interest {
+  font-size: 14.5px;
+  color: var(--faint);
+  margin: 16px 0 0;
+}
+.interest a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--hair); }
+.interest a:hover { color: var(--ink); border-color: var(--amber-line); }
+
+/* what a zip actually holds, drawn rather than described */
+.tree {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.9;
+  background: var(--elev);
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+  padding: 20px 22px;
+  margin: 6px 0 22px;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--muted);
+}
+.tree b { color: var(--ink); font-weight: 400; }
+
+/* the split that causes almost everything else on this page */
+.split { display: grid; gap: 14px; margin: 8px 0 22px; }
+@media (min-width: 620px) { .split { grid-template-columns: 1fr 1fr; } }
+.split > div {
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+  padding: 18px 20px;
+  background: var(--elev);
+}
+.split .eyebrow { display: block; margin-bottom: 12px; }
+.split ul { margin: 0; padding-left: 1.05em; font-size: 16px; }
+.split li { margin-bottom: 7px; }
+.split li:last-child { margin-bottom: 0; }
+.split .none { color: var(--faint); font-size: 16px; margin: 0; }
+
+/* Questions in the words people type them, which is not the words the
+   headings above are written in. Prose wants "Nothing has a date on it";
+   a search box and an assistant both want "why are all my exported Snapchat
+   memories dated today". Each answer stands alone on purpose, so it can be
+   lifted out of the page and still be true. */
+.faq__item { padding: 18px 0; border-top: 1px solid var(--hair); }
+.faq__item:first-child { border-top: 0; padding-top: 4px; }
+.faq h3 {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 0 0 8px;
+  letter-spacing: -0.005em;
+}
+.faq p { color: var(--muted); margin: 0; }
+
+/* the one place on this page where the app is mentioned */
+.building { border-left: 2px solid var(--amber-line); padding-left: 22px; }
+
+.summary li { margin-bottom: 12px; }
+
+footer.end { padding: 40px 0 84px; color: var(--muted); font-size: 15px; }
+footer.end .eyebrow { display: block; margin-bottom: 14px; }
+footer.end a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--hair); }
+footer.end a:hover { color: var(--ink); border-color: var(--amber-line); }
+.disclaimer { color: var(--faint); font-size: 13px; margin-top: 22px; }
+</style>
+</head>
+<body>
+
+<a class="wordmark wordmark-anchor" href="/" aria-label="Jim Robin Schlupp, home"><span class="wordmark__cell"><span class="wordmark__sizer">J</span><span class="wordmark__glyph">J</span></span><span class="wordmark__cell"><span class="wordmark__sizer">i</span><span class="wordmark__glyph">i</span></span><span class="wordmark__cell"><span class="wordmark__sizer">m</span><span class="wordmark__glyph">m</span></span><span class="wordmark__cell"><span class="wordmark__sizer">&nbsp;</span></span><span class="wordmark__cell"><span class="wordmark__sizer">R</span><span class="wordmark__glyph">R</span></span><span class="wordmark__cell"><span class="wordmark__sizer">o</span><span class="wordmark__glyph">o</span></span><span class="wordmark__cell"><span class="wordmark__sizer">b</span><span class="wordmark__glyph">b</span></span><span class="wordmark__cell"><span class="wordmark__sizer">i</span><span class="wordmark__glyph">i</span></span><span class="wordmark__cell"><span class="wordmark__sizer">n</span><span class="wordmark__glyph">n</span></span><span class="wordmark__cell"><span class="wordmark__sizer">&nbsp;</span></span><span class="wordmark__cell"><span class="wordmark__sizer">S</span><span class="wordmark__glyph">S</span></span><span class="wordmark__cell"><span class="wordmark__sizer">c</span><span class="wordmark__glyph">c</span></span><span class="wordmark__cell"><span class="wordmark__sizer">h</span><span class="wordmark__glyph">h</span></span><span class="wordmark__cell"><span class="wordmark__sizer">l</span><span class="wordmark__glyph">l</span></span><span class="wordmark__cell"><span class="wordmark__sizer">u</span><span class="wordmark__glyph">u</span></span><span class="wordmark__cell"><span class="wordmark__sizer">p</span><span class="wordmark__glyph">p</span></span><span class="wordmark__cell"><span class="wordmark__sizer">p</span><span class="wordmark__glyph">p</span></span></a>
+
+<div class="wrap">
+  <div class="lede measure" data-k="lede">
+    <h1>What is actually inside a Snapchat Memories export</h1>
+    <p class="standfirst">If you have asked Snapchat for your Memories, or you are about to, this is
+    what arrives and what is wrong with it.</p>
+
+    <div class="tldr">
+      <span class="eyebrow">The short version</span>
+      <ul>
+        <li><strong>Two switches decide whether you get anything.</strong>
+        "Export your Memories" starts switched off, and the date range has to be
+        set to All Time or you get a window instead of an archive.</li>
+        <li><strong>Not one file has a date on it.</strong> The real dates are in
+        a separate index file, so a straight import stamps every year of them with
+        today.</li>
+        <li><strong>Your captions arrive as separate transparent images</strong>,
+        next to the photos rather than on them.</li>
+        <li><strong>The count will come up short</strong>, with nothing to explain
+        it. That is usually My Eyes Only, which is never included, and it is not
+        damage.</li>
+      </ul>
+    </div>
+    <p class="interest">I am not neutral about this: I write it while building
+    <a href="/#amber">an app that does it</a>. It is mentioned once more, at the
+    very end, and everything on this page works without it.</p>
+  </div>
+</div>
+
+<article class="wrap">
+
+  <section class="measure" data-k="intro">
+    <p>None of it is written down anywhere. Most of it only becomes obvious after
+    you have already dragged your whole archive into your photo library and
+    found every single item dated today.</p>
+    <p>This is not a review of any app. It is a description of a file format, and
+    everything in it can be checked against your own export.</p>
+  </section>
+
+  <section class="measure" data-k="getting">
+    <h2>Getting one</h2>
+    <p>The export is free. It is on Snapchat's website rather than in the app: log
+    in to your account there and find the My Data section.</p>
+    <p>Two settings on that page decide whether you get your memories at all, and
+    both are easy to walk straight past.</p>
+    <p><strong>"Export your Memories" is a toggle, and it starts switched
+    off.</strong> It is one row in a list of a dozen data categories, and the
+    counter at the top of the page reads <em>0 / 10 selected</em> when you arrive.
+    Submit without turning it on and you get your account details and your chat
+    history and not one photograph.</p>
+    <p><strong>And there is a date range.</strong> It offers 7 days, 30 days, 3, 6
+    and 12 months, 2 years, 3 years, and All Time. If you want everything you have
+    ever saved, you have to choose <strong>All Time</strong>. Anything else limits
+    the export to a window, which for someone trying to rescue everything is the
+    difference between an archive and a slice of one, and nothing afterwards tells
+    you that is what happened.</p>
+    <p>Switching the memories toggle on also reveals a shortcut:
+    <strong>Request Only Memories</strong>, a button that skips the rest of the
+    page and asks for the media alone. It still asks for a date range, and it
+    is the fastest honest route if the memories are all you came for.</p>
+
+    <p>There is a third toggle for JSON files, described as being for data
+    portability. It changes the format the index arrives in and not what you get,
+    so either setting works.</p>
+    <p>Then you wait. Snapchat says the export "can take a long time (possibly
+    hours or days) to complete", and says it strives to deliver within seven
+    days. How long really does track how much you
+    asked for: a full multi-year archive took about a day, while
+    a deliberately tiny one came back almost immediately. Somebody with several
+    hundred gigabytes should expect the slow end of that.</p>
+    <p><strong>The email, when it comes, does not contain your memories.</strong>
+    It sends you back to the website, and the path there is not obvious: My Data,
+    then <em>Your exports</em>, then <em>See exports</em>, and download the
+    package from that list. So what you are waiting for is a link to a page, not
+    a file, and nothing downloads by itself.</p>
+    <p>The package is a set of zip files of a couple of gigabytes each, so a large
+    account gets a lot of them. And they do not wait for you: the exports list
+    carries a live countdown, and <strong>it runs for about three days</strong>.
+    After that the export is gone and you start again from the request.</p>
+
+    <p>Confusingly there is a second clock. If your export arrives without the
+    media in it, the index page carries a download link per memory instead, and
+    Snapchat gives those <strong>seven</strong> days rather than three. Two
+    mechanisms, two deadlines: the one that matters is the three days on the
+    package.</p>
+    <p>Which is generous for a small export and tight for a big one. Several
+    hundred gigabytes inside seventy-two hours means a machine left on and
+    downloading, on a connection that can sustain it, so it is worth asking for
+    the export when you have the three days rather than when you happen to think
+    of it.</p>
+  </section>
+
+  <section class="measure" data-k="whatyouget">
+    <h2>What you get</h2>
+    <p>Roughly this, repeated across however many zip files it takes:</p>
+<div class="tree">mydata~<i>numbers</i>.zip
+│
+├── memories/
+│   ├── <b>a photo</b>            .jpg, with no date on it
+│   ├── <b>its caption</b>        -overlay.png, a separate transparent image
+│   └── <b>a video</b>            .mp4, stored a quarter turn from how it plays
+│
+├── <b>json/</b>memories_history.json   every date and place, for all of them
+├── <b>html/</b>memories_history.html   the same table, to read in a browser
+└── <b>index.html</b>                   a viewer for the whole export</div>
+    <p>That is the whole of it. Everything below follows from how those three
+    things relate to each other, which is: barely.</p>
+    <p>The index comes twice, as JSON and as an HTML twin, and both
+    carry exactly the same table. <code>index.html</code> at the top is neither: it is a small
+    offline viewer for the export, and if memories are all you asked for it
+    opens on its own FAQ page, which is disconcerting and harmless.</p>
+  </section>
+
+  <section class="measure" data-k="s01">
+    <h2><span class="n">01</span>Nothing has a date on it</h2>
+    <p>This is the big one, and it is the reason a straightforward import goes
+    wrong.</p>
+    <p><strong>Not one exported file carries the date it was saved.</strong> No EXIF
+    creation date on the photos, no creation date on the videos. As far as your
+    computer is concerned, every one of them was made on the day you unzipped it.</p>
+    <p>The real dates exist. They are in <code>memories_history.json</code>, as a
+    separate list. So the information was never lost, it was just put somewhere
+    nothing on your phone or your computer knows how to read.</p>
+
+    <div class="split">
+      <div>
+        <span class="eyebrow">What the index knows</span>
+        <ul>
+          <li>the date and time <em>you saved it</em></li>
+          <li>where you were <em>when you saved it</em>, usually</li>
+          <li>whether it is a photo or a video</li>
+        </ul>
+      </div>
+      <div>
+        <span class="eyebrow">What the file knows</span>
+        <p class="none">Nothing.</p>
+      </div>
+    </div>
+
+    <p>That split is the whole problem, and almost everything further down this
+    page is a consequence of it.</p>
+    <p>Drop the folder into Apple Photos or Google Photos and you get all of it
+    stacked on today, in one undated heap, in whatever order the file
+    names happened to fall. That is not the import failing. That is the export.</p>
+  </section>
+
+  <section class="measure" data-k="s02">
+    <h2><span class="n">02</span>Your captions arrive as separate pictures</h2>
+    <p>The text you typed on a snap, the drawings, the stickers, the time and
+    temperature: none of it is on the picture.</p>
+    <p>They ship as their own transparent PNG, sitting next to the photo, ending
+    <code>-overlay.png</code>. The photo underneath is the bare camera image with
+    nothing on it.</p>
+    <p>So a memory that meant something because of what you wrote on it arrives as
+    two files that no longer know about each other, and if you only look at the
+    media you will conclude the captions are gone. They are not. Something has to
+    lay them back down on the picture, in the right place, at the right size.</p>
+    <p>For video, the overlay is still a still image, and it has to be composited
+    over every frame.</p>
+  </section>
+
+  <section class="measure" data-k="s03">
+    <h2><span class="n">03</span>Locations are in the index too, when they exist</h2>
+    <p>Same story as the dates. GPS coordinates are in
+    <code>memories_history.json</code>, not in the files.</p>
+    <p>Not every memory has one. Snapchat only recorded a location when location
+    access happened to be on at the time, so an export usually has a majority with
+    coordinates and a minority with none, and there is no way to work out the
+    missing ones afterwards. Nobody wrote them down.</p>
+  </section>
+
+  <section class="measure" data-k="s04">
+    <h2><span class="n">04</span>Videos are stored a quarter turn from how they play</h2>
+    <p>Most exported videos are stored in landscape with a rotation flag telling
+    the player to turn them upright. Almost every one we sampled was like this.</p>
+    <p>If whatever you use to process them respects the flag, fine. If it does not,
+    and a surprising number of tools do not, you get an archive of videos lying on
+    their side. Always ask how a video will be <em>presented</em>, with its
+    transform applied, rather than what its raw dimensions say.</p>
+  </section>
+
+  <section class="measure" data-k="s05">
+    <h2><span class="n">05</span>Sideways snaps were always sideways</h2>
+    <p>Related, and the opposite conclusion.</p>
+    <p><strong>Snapchat has no concept of a landscape photo.</strong> Every snap is
+    captured and stored in an upright frame. If you took one with the phone turned
+    sideways, it is stored sideways, and it looks sideways <em>inside Snapchat
+    too</em>. You can check this yourself: find one in the app and it is on its
+    side there as well.</p>
+    <p>This matters because it is the one that looks like the export broke
+    something, and it did not. Nothing was lost. The right way up was never
+    recorded by anyone, which is also why no tool can straighten these
+    automatically. There is nothing to read. Somebody has to look at each one and
+    decide.</p>
+  </section>
+
+  <section class="measure" data-k="s06">
+    <h2><span class="n">06</span>The count will not match, and nothing tells you why</h2>
+    <p><code>memories_history.json</code> lists more memories than the export
+    delivers files for. Every large export we have seen does this.</p>
+    <p>Nothing in the export accounts for the difference. No note, no error, no list
+    of what did not make it. You simply end up with fewer pictures than the index
+    says you had, and no way to find out which ones.</p>
+    <p><strong>The usual answer is My Eyes Only.</strong> Memories in the private
+    vault are counted in that index and their files are never included in the
+    export. So the gap is real, it is explainable, and it is not damage.</p>
+
+    <div class="admission">
+      <span class="eyebrow">We got this wrong</span>
+      <p>We checked two of the affected days inside Snapchat, found nothing in the
+      main Memories grid, and concluded the media was gone from Snapchat's side. It
+      was not. It was in My Eyes Only, which we had not thought to open.</p>
+      <p>If you go looking into your own gap, <strong>check both the main grid and
+      the My Eyes Only section</strong> before you conclude anything has been
+      lost.</p>
+    </div>
+
+    <p style="margin-top:26px">The practical consequence: if you want your private
+    memories out, the export will not do it. You have to save them out of the app
+    by hand, or move them back into your ordinary Memories before you request the
+    export.</p>
+  </section>
+
+  <section class="measure" data-k="s07">
+    <h2><span class="n">07</span>The index does not say which file is which</h2>
+    <p>This is the part that makes rebuilding harder than it looks.</p>
+    <p>Each row in <code>memories_history.json</code> has a date, a media type, and
+    sometimes coordinates. It does <strong>not</strong> have a filename, an ID, or
+    anything else that points at a particular file in the zips.</p>
+    <p>So putting the dates back means matching rows to files by inference: same
+    day, same type, in order. It works, but it is fiddly, and it fails quietly
+    rather than loudly. Bursts and duplicate saves are where it gets interesting,
+    and the timestamps in the index are UTC while the app groups memories by your
+    local day, so a memory taken late at night can appear to belong to the day
+    before.</p>
+  </section>
+
+  <section class="measure" data-k="s08">
+    <h2><span class="n">08</span>Days are split across zip files</h2>
+    <p>The chunks are chronological, which is convenient, but the boundaries fall
+    wherever they fall rather than at midnight.</p>
+    <p>That means a single day's memories can be spread across two zips, and more
+    awkwardly, <strong>a photo and its caption overlay can end up in different
+    files</strong>. Anything processing one zip at a time will find a picture with
+    no caption, or a caption with no picture, and if it is not looking for that it
+    will happily record the memory as done.</p>
+  </section>
+
+  <section class="measure" data-k="rebuild">
+    <h2>If you are going to rebuild it yourself</h2>
+    <p>It is very doable, and there are three rules worth having before you start.</p>
+    <p><strong>Work on a copy.</strong> Keep the original zips untouched until you
+    are certain, and do not delete anything from Snapchat until you have opened the
+    results and confirmed they are really there. Every mistake below was one we
+    made on a copy and would have been permanent on an original.</p>
+    <p><strong>Assume silent success.</strong> The characteristic failure mode here
+    is not a crash. It is a step that reports success and quietly does the wrong
+    thing: GPS written to the wrong metadata convention so the southern hemisphere
+    ends up in the north, a caption composited underneath the video instead of over
+    it, a memory archived with no caption at all because its overlay was in the
+    next zip along. Check the output, not the log.</p>
+    <p><strong>Verify before you delete.</strong> Whatever you use, open the
+    finished files, look at the dates, look at a few captions, and only then start
+    clearing space.</p>
+    <p>Everything above is what you need to know to write your own, and it is all
+    the hard-won part. The rest is ordinary file handling.</p>
+
+    <div class="admission">
+      <span class="eyebrow">Whose problem this is</span>
+      <p>Worth being blunt, because the people this happens to are often not
+      technical and the setup does not make it obvious: <strong>once the export
+      leaves Snapchat, those files are in your keeping and nobody
+      else's.</strong></p>
+      <p>Nothing can tell you your archive is complete, because nothing outside
+      Snapchat can see what Snapchat still holds. And an export is not a backup.
+      An archive on one phone is one lost phone away from gone; an archive on one
+      drive is one dead drive away from gone.</p>
+      <p><strong>Put it in the cloud, and leave it there.</strong> iCloud Drive,
+      Google Drive, Dropbox, whatever you already pay for: the point is somewhere
+      that syncs and is backed up by somebody whose job it is, so that losing a
+      device does not lose the archive. A drive is a fine second copy and a poor
+      only one.</p>
+      <p>Then: open the files and check they are really there. Keep the original
+      zips until you are certain. Have a second copy before you remove a first.
+      And delete from Snapchat last, never first.</p>
+    </div>
+  </section>
+
+  <section class="measure" data-k="faq">
+    <h2>Questions people actually ask</h2>
+    <div class="faq">
+      <div class="faq__item">
+        <h3>Is the Snapchat data export free?</h3>
+        <p>Yes. It is on Snapchat&#x27;s website rather than in the app, under My Data, and it costs nothing. You do not need Snapchat+ or a storage plan to get your memories out.</p>
+      </div>
+      <div class="faq__item">
+        <h3>How do I export my Snapchat memories?</h3>
+        <p>Log in on Snapchat&#x27;s website, go to My Data, and switch on “Export your Memories”, which starts switched off. Then set the date range to All Time, or you will only get part of your archive. You get an email when it is ready.</p>
+      </div>
+      <div class="faq__item">
+        <h3>Why are all my exported Snapchat memories dated today?</h3>
+        <p>Because not one exported file carries a date at all. Snapchat puts the dates in a separate index file called memories_history.json, not on the photos and videos themselves, so anything that imports the folder stamps everything with the day you unzipped it.</p>
+      </div>
+      <div class="faq__item">
+        <h3>Where are the dates in a Snapchat export?</h3>
+        <p>In memories_history.json, which comes with the export. It lists the date and time you saved each memory, and where you were when you saved it. Nothing on your phone or computer reads it automatically.</p>
+      </div>
+      <div class="faq__item">
+        <h3>Why are my captions missing from my exported Snapchat photos?</h3>
+        <p>They are not missing. Captions, drawings and stickers ship as their own transparent PNG files ending -overlay.png, sitting beside the photo instead of on it. Something has to lay them back down onto the picture.</p>
+      </div>
+      <div class="faq__item">
+        <h3>Why does my Snapchat export have fewer memories than Snapchat says I have?</h3>
+        <p>Usually because of My Eyes Only. Those memories are counted in the export&#x27;s index but their files are never included, so the count comes up short with nothing to explain the difference. It is not damage, and it is not the export failing.</p>
+      </div>
+      <div class="faq__item">
+        <h3>Can I export My Eyes Only memories from Snapchat?</h3>
+        <p>No. Snapchat&#x27;s export never includes the private vault, so no tool can rescue them. You have to save them out of the app by hand, or move them back into your ordinary Memories before you request the export.</p>
+      </div>
+      <div class="faq__item">
+        <h3>How long do I have to download my Snapchat export?</h3>
+        <p>About three days. The exports list on Snapchat&#x27;s website shows a live countdown, and once it runs out the export is gone and you have to request a new one. That is tight if you have hundreds of gigabytes to pull.</p>
+      </div>
+      <div class="faq__item">
+        <h3>How long does a Snapchat export take to prepare?</h3>
+        <p>Snapchat says it can take hours or days, and in practice it tracks how much you asked for: a full multi-year archive took about a day, while a deliberately small one came back almost immediately.</p>
+      </div>
+      <div class="faq__item">
+        <h3>Why are my exported Snapchat videos sideways?</h3>
+        <p>Two different reasons. Most videos are stored rotated with a flag telling the player to turn them upright, and some tools ignore that flag. Separately, Snapchat has no concept of a landscape photo at all, so a snap taken with the phone turned is stored sideways and looks sideways inside Snapchat too.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="measure" data-k="building">
+    <h2>What I am building</h2>
+    <div class="building">
+      <p>All of the above is why I ended up writing an app. It is called Amber, it
+      runs on iPhone, and it does the part described on this page: reads the
+      export, puts the real dates and places back onto the files, lays the
+      captions down again, and tells you what the gap is and why rather than
+      quietly showing you fewer memories than you had.</p>
+      <p>It is on the App Store now, as
+      <a href="https://apps.apple.com/app/id6797481331">Amber Archive</a>.
+      Getting your files out is free; there is a small one-time unlock for the
+      browsing side afterwards. <a href="/#amber">There is a page about it
+      here</a>, if you want to see what it does first.</p>
+      <p>Nothing on this page depends on that. Everything above is true whether
+      you use it, write your own, or do the whole thing by hand, which is why it
+      is written down here rather than kept as a selling point.</p>
+    </div>
+  </section>
+
+</article>
+
+<footer class="end wrap measure" data-k="footer">
+  <span class="eyebrow">About this page</span>
+  <p>The research behind this is <a href="/">Jim Robin Schlupp's</a>: one full
+  Snapchat export, unpacked, rebuilt and checked against the Snapchat app.
+  Everything stated here can be verified in your own export.</p>
+  <p><strong>The text was written by Claude, an AI assistant, working from that
+  research.</strong> Worth saying plainly on a page whose subject is things that
+  go undisclosed.</p>
+  <p class="disclaimer">Not affiliated with, endorsed by, or connected to Snap Inc.
+  Snapchat is a trademark of Snap Inc., used here only to identify their product.</p>
+</footer>
+
+<!-- LINK SLOT: the open-source tools go here at launch. -->
+
+<style>
+/* ---- edit mode. Invisible to everybody who is not Jim. ---- */
+.ed-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  display: none; align-items: center; gap: 12px;
+  padding: 12px 20px;
+  background: var(--elev); border-top: 1px solid var(--hair);
+  font-family: "Space Mono", ui-monospace, monospace; font-size: 12px;
+  color: var(--muted);
+}
+.editing .ed-bar { display: flex; }
+.ed-bar button {
+  font: inherit; cursor: pointer; padding: 7px 14px; border-radius: 6px;
+  border: 1px solid var(--hair); background: var(--bg); color: var(--ink);
+}
+.ed-bar button.primary { background: var(--amber); border-color: var(--amber); color: var(--bg); }
+.ed-bar .sp { margin-left: auto; }
+.editing [data-k] {
+  outline: 1px dashed var(--amber-line);
+  outline-offset: 10px;
+  border-radius: 2px;
+}
+.editing [data-k]:focus { outline-style: solid; }
+body.editing { padding-bottom: 64px; }
+</style>
+
+<div class="ed-bar" role="toolbar" aria-label="Editing">
+  <span>editing · type <b>jrs</b> again to leave</span>
+  <span class="sp"></span>
+  <span id="edStatus"></span>
+  <button id="edRevert">Revert</button>
+  <button id="edSave" class="primary">Publish</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var BLOCKS = function () { return document.querySelectorAll("[data-k]"); };
+
+  /* What may survive a save. contenteditable invents markup when you paste, and
+     what gets stored here is later written back with innerHTML, so the list is
+     short on purpose. The server repeats this check: a sanitiser that only runs
+     in the browser is not a sanitiser. */
+  var ALLOWED = /^(P|UL|OL|LI|STRONG|EM|B|I|BR|CODE|H2|H3|A|SPAN|DIV)$/;
+  function clean(root) {
+    var el = root.cloneNode(true);
+    el.querySelectorAll("*").forEach(function (n) {
+      if (!ALLOWED.test(n.tagName)) { n.replaceWith.apply(n, n.childNodes); return; }
+      Array.prototype.slice.call(n.attributes).forEach(function (a) {
+        var keep = a.name === "class" || a.name === "data-k" ||
+                   (n.tagName === "A" && a.name === "href");
+        if (!keep) n.removeAttribute(a.name);
+      });
+      if (n.tagName === "A" && /^\s*javascript:/i.test(n.getAttribute("href") || "")) {
+        n.setAttribute("href", "#");
+      }
+    });
+    return el.innerHTML;
+  }
+
+  /* Edits published since this HTML was built. The page is already complete
+     without this: if the fetch 204s, fails, or is blocked, nothing changes and
+     a crawler never notices. That is deliberate and must stay true. */
+  var baked = {};
+  BLOCKS().forEach(function (n) { baked[n.dataset.k] = n.innerHTML; });
+
+  fetch("/api/teardown", { cache: "no-store" })
+    .then(function (r) { return r.status === 200 ? r.json() : null; })
+    .then(function (doc) {
+      if (!doc || !doc.sections) return;
+      BLOCKS().forEach(function (n) {
+        var v = doc.sections[n.dataset.k];
+        if (typeof v === "string" && v.length) n.innerHTML = v;
+      });
+    })
+    .catch(function () { /* the baked page stands */ });
+
+  /* J·R·S, the same gesture as the Studio. */
+  var typed = "";
+  document.addEventListener("keydown", function (e) {
+    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    if (e.target.isContentEditable) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    typed = (typed + (e.key || "")).slice(-3).toLowerCase();
+    if (typed === "jrs") { typed = ""; toggle(); }
+  });
+
+  var on = false;
+  function toggle() {
+    on = !on;
+    document.body.classList.toggle("editing", on);
+    BLOCKS().forEach(function (n) { n.contentEditable = on ? "true" : "false"; });
+    say(on ? "" : "");
+  }
+  function say(m) { document.getElementById("edStatus").textContent = m; }
+
+  document.getElementById("edRevert").addEventListener("click", function () {
+    if (!confirm("Put every block back to how this page was built? Unsaved edits are lost.")) return;
+    BLOCKS().forEach(function (n) { n.innerHTML = baked[n.dataset.k]; });
+    say("reverted to the built version, not yet published");
+  });
+
+  document.getElementById("edSave").addEventListener("click", function () {
+    var sections = {};
+    BLOCKS().forEach(function (n) { sections[n.dataset.k] = clean(n); });
+
+    var pw = sessionStorage.getItem("jrsEditPw");
+    if (!pw) { pw = prompt("Edit password"); if (!pw) return; }
+
+    say("publishing…");
+    fetch("/api/save-teardown", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-edit-password": pw },
+      body: JSON.stringify({ sections: sections })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { s: r.status, d: d }; }); })
+      .then(function (res) {
+        if (res.s === 401) { sessionStorage.removeItem("jrsEditPw"); say("wrong password"); return; }
+        if (res.d && res.d.ok) {
+          sessionStorage.setItem("jrsEditPw", pw);
+          say("published · live for everyone ✓");
+          setTimeout(function () { say(""); }, 6000);
+        } else {
+          say((res.d && res.d.error) || "could not publish");
+        }
+      })
+      .catch(function () { say("could not reach the server"); });
+  });
+})();
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "What is actually inside a Snapchat Memories export",
+      "description": "What arrives when you export your Snapchat Memories, and what is wrong with it.",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://jimrobinschlupp.com/snapchat-memories-export/"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Jim Robin Schlupp",
+        "url": "https://jimrobinschlupp.com/"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "Jim Robin Schlupp",
+        "url": "https://jimrobinschlupp.com/"
+      },
+      "datePublished": "2026-08-01",
+      "dateModified": "2026-08-01",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is the Snapchat data export free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. It is on Snapchat's website rather than in the app, under My Data, and it costs nothing. You do not need Snapchat+ or a storage plan to get your memories out."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I export my Snapchat memories?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Log in on Snapchat's website, go to My Data, and switch on “Export your Memories”, which starts switched off. Then set the date range to All Time, or you will only get part of your archive. You get an email when it is ready."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why are all my exported Snapchat memories dated today?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Because not one exported file carries a date at all. Snapchat puts the dates in a separate index file called memories_history.json, not on the photos and videos themselves, so anything that imports the folder stamps everything with the day you unzipped it."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where are the dates in a Snapchat export?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "In memories_history.json, which comes with the export. It lists the date and time you saved each memory, and where you were when you saved it. Nothing on your phone or computer reads it automatically."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why are my captions missing from my exported Snapchat photos?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "They are not missing. Captions, drawings and stickers ship as their own transparent PNG files ending -overlay.png, sitting beside the photo instead of on it. Something has to lay them back down onto the picture."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does my Snapchat export have fewer memories than Snapchat says I have?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Usually because of My Eyes Only. Those memories are counted in the export's index but their files are never included, so the count comes up short with nothing to explain the difference. It is not damage, and it is not the export failing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I export My Eyes Only memories from Snapchat?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Snapchat's export never includes the private vault, so no tool can rescue them. You have to save them out of the app by hand, or move them back into your ordinary Memories before you request the export."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long do I have to download my Snapchat export?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "About three days. The exports list on Snapchat's website shows a live countdown, and once it runs out the export is gone and you have to request a new one. That is tight if you have hundreds of gigabytes to pull."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long does a Snapchat export take to prepare?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Snapchat says it can take hours or days, and in practice it tracks how much you asked for: a full multi-year archive took about a day, while a deliberately small one came back almost immediately."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why are my exported Snapchat videos sideways?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Two different reasons. Most videos are stored rotated with a flag telling the player to turn them upright, and some tools ignore that flag. Separately, Snapchat has no concept of a landscape photo at all, so a snap taken with the phone turned is stored sideways and looks sideways inside Snapchat too."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+</body>
+</html>

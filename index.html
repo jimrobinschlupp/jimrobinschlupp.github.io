@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Favicon: a plain disc. The chrome orb has too much detail to survive a
+         16px tab, so the tab wears the simplest possible mark. Inline as a data
+         URI so no cached /favicon.png can win over it. The dark disc here is
+         the no-JS fallback; the script below repaints it to suit the tab bar.
+         The home-screen icon stays the orb: at 180px the detail reads fine. -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Ccircle%20cx='16'%20cy='16'%20r='15'%20fill='%230a0a0a'/%3E%3C/svg%3E" />
+    <script>
+      /* Flip the disc dark-on-light / light-on-dark so it never vanishes into
+         the tab bar.
+
+         Two deliberate choices here. First, we swap the link's href rather than
+         putting a `prefers-color-scheme` media query inside the SVG: browsers
+         honour CSS *within* a favicon inconsistently, while "here is a
+         different icon now" is understood everywhere. Second, it keys off the
+         OS query and NOT the site's own light/dark toggle (data-theme). The
+         favicon lives in the browser's chrome, which follows the OS, so a
+         visitor reading the site in light mode on a dark-themed Mac still
+         needs the pale disc. The two are genuinely independent. */
+      (function () {
+        try {
+          var q = window.matchMedia("(prefers-color-scheme: dark)");
+          var current = null;
+          var paint = function () {
+            /* the site's own two background tones, used inverted (index.css) */
+            var fill = q.matches ? "%23f7f7f5" : "%230a0a0a";
+            if (fill === current) return;
+            current = fill;
+            var old = document.querySelector('link[rel="icon"]');
+            var next = document.createElement("link");
+            next.rel = "icon";
+            next.type = "image/svg+xml";
+            next.href =
+              "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'" +
+              "%20viewBox='0%200%2032%2032'%3E%3Ccircle%20cx='16'%20cy='16'" +
+              "%20r='15'%20fill='" + fill + "'/%3E%3C/svg%3E";
+            /* replacing the element, not just its href: some browsers ignore an
+               in-place href change and keep painting the old icon */
+            if (old) old.remove();
+            document.head.appendChild(next);
+          };
+          paint();
+          q.addEventListener("change", paint);
+          /* Belt and braces. A theme flip usually happens while this tab sits
+             in the background (macOS switches at sunset), and the change event
+             above is the one part of this that some browsers deliver late or
+             not at all. Re-checking on every visibility change and on a
+             back/forward restore costs nothing when the answer is unchanged
+             (see the `current` guard), and catches up the moment someone looks
+             at the tab. Deliberately not gated on document.hidden: repainting
+             on the way out is harmless, and one less thing to be wrong about. */
+          document.addEventListener("visibilitychange", paint);
+          window.addEventListener("pageshow", paint);
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- viewport-fit=cover lets the page extend into the iPhone's status-bar /
+         Dynamic Island region (and behind the home indicator), like NYT or HN:
+         content scrolls up behind the clock instead of stopping in a hard line
+         below it. Everything pinned near the screen edges compensates with
+         env(safe-area-inset-*), which stays 0 on devices without such zones. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Jim Robin Schlupp — portfolio of personal and professional projects." />
+
+    <!-- Social share card (Open Graph + Twitter). Absolute URLs on purpose:
+         scrapers don't resolve relative paths. /api/og serves the LIGHT card
+         (public/og-light.png) while the sun is up in Zürich and the DARK one
+         (public/og.png) at night — Apple's auto-appearance rhythm. Both are
+         drawn by scripts/og-design.html. -->
+    <!-- The homepage answers on three URLs with identical content: with www,
+         without it, and as /index.html. With no canonical, Google reported it
+         as "Duplicate without user-selected canonical" and picked one itself.
+         Search Console flagged it on 8 August 2026. -->
+    <link rel="canonical" href="https://jimrobinschlupp.com/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jimrobinschlupp.com/" />
+    <meta property="og:site_name" content="Jim Robin Schlupp" />
+    <meta property="og:title" content="Jim Robin Schlupp" />
+    <meta property="og:description" content="Portfolio of personal and professional projects" />
+    <meta property="og:image" content="https://jimrobinschlupp.com/api/og" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Jim Robin Schlupp — orbit-style portfolio card" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Jim Robin Schlupp" />
+    <meta name="twitter:description" content="Portfolio of personal and professional projects" />
+    <meta name="twitter:image" content="https://jimrobinschlupp.com/api/og" />
+    <!-- Colors the mobile browser chrome (the iOS status-bar strip behind the
+         time/battery) to match the page background. Kept in sync with --bg in
+         index.css (#f7f7f5 light / #0a0a0a dark); the inline script below sets
+         it — and data-theme — before first paint so there's no light flash,
+         and useTheme.tsx updates it on toggle. -->
+    <meta name="theme-color" content="#f7f7f5" />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          var dark = saved
+            ? saved === "dark"
+            : window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute("content", dark ? "#0a0a0a" : "#f7f7f5");
+        } catch (e) {}
+      })();
+    </script>
+    <title>Jim Robin Schlupp</title>
+    <!-- Fonts are self-hosted (see @font-face in src/index.css + public/fonts/),
+         so there is no request to Google here. Preload the two most-used faces
+         — Jost (variable, latin) and Space Mono, latin — so first paint isn't
+         held on them. The one Jost VF file covers every weight the site uses. -->
+    <link
+      rel="preload"
+      href="/fonts/Jost-VF-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/SpaceMono-400-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <script type="module" crossorigin src="/assets/index-CgkZehYD.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-F4BQugz7.css">
+  </head>
+  <body>
+    <!-- data-nosnippet: Google may not quote the page body in search result
+         snippets, so the snippet is the meta description above and nothing
+         else. Without this, Google padded the (short) description with text
+         scraped from the page: the orbit labels ran together into "Jim's Gym
+         Visual DesignPhotography Text NotesWriting Personal...". Spotted in
+         the live result on 10 August 2026. -->
+    <div id="root" data-nosnippet></div>
+    <!-- TEMPORARY safe-area debug overlay, visible only with ?sa=1 in the URL
+         (e.g. jimrobinschlupp.com/?sa=1#oasis). Draws where iOS thinks the
+         safe zone and the layout viewport start, plus live numbers, so the
+         status-bar behaviour can be diagnosed from a phone screenshot.
+         Remove once the Dynamic Island cutoff is settled. -->
+    <script>
+      (function () {
+        var q = window.location.search;
+        // ?bare=1 — diagnostic "maximum Hacker News likeness" mode: remove
+        // every fixed/sticky element and the viewport-fit declaration, so the
+        // page is a plain scrolling document with nothing at the top edge.
+        // Decides whether ANY of our structure blocks Safari's native
+        // behind-the-clock treatment.
+        if (q.indexOf("bare=1") !== -1) {
+          var st = document.createElement("style");
+          st.textContent =
+            ".zoom__close,.wordmark-anchor,.oa-toggles,.cs-toggles," +
+            ".zoom__topfade,.page-zoom__planet{display:none!important}";
+          document.head.appendChild(st);
+          var vp = document.querySelector('meta[name="viewport"]');
+          if (vp) vp.setAttribute("content", "width=device-width, initial-scale=1.0");
+        }
+        if (q.indexOf("sa=1") === -1) return;
+        var Z = 2147483000;
+        function el(css) {
+          var d = document.createElement("div");
+          d.style.cssText = "pointer-events:none;z-index:" + Z + ";" + css;
+          document.body.appendChild(d);
+          return d;
+        }
+        // probe: resolved env(safe-area-inset-top) in px, read via offsetHeight
+        var probe = el(
+          "position:fixed;top:0;left:0;width:1px;visibility:hidden;" +
+            "height:env(safe-area-inset-top, 0px);"
+        );
+        // green band = the safe-area zone itself (invisible if inset is 0)
+        el(
+          "position:fixed;top:0;left:0;right:0;background:rgba(0,180,90,.35);" +
+            "border-bottom:2px solid #00b45a;height:env(safe-area-inset-top, 0px);"
+        );
+        // red hairline = very top edge of the LAYOUT viewport
+        el("position:fixed;top:0;left:0;right:0;height:2px;background:#e02020;");
+        // blue hairline = very top of the DOCUMENT (only visible near scrollY 0)
+        el("position:absolute;top:0;left:0;right:0;height:2px;background:#2060e0;");
+        var out = el(
+          "position:fixed;top:120px;left:12px;background:rgba(0,0,0,.82);" +
+            "color:#fff;font:11px/1.5 monospace;padding:8px 10px;border-radius:6px;" +
+            "white-space:pre;"
+        );
+        function upd() {
+          var vv = window.visualViewport;
+          out.textContent =
+            "build:     2026-07-27a\n" +
+            "sat(env):  " + probe.offsetHeight + "px\n" +
+            "innerH:    " + window.innerHeight + "\n" +
+            "clientH:   " + document.documentElement.clientHeight + "\n" +
+            "vv.h/top:  " + (vv ? Math.round(vv.height) + " / " + Math.round(vv.offsetTop) : "n/a") + "\n" +
+            "screenH:   " + window.screen.height + "\n" +
+            "scrollY:   " + Math.round(window.scrollY);
+        }
+        upd();
+        window.addEventListener("scroll", upd, { passive: true });
+        window.addEventListener("resize", upd);
+        setInterval(upd, 700);
+      })();
+    </script>
+  </body>
+</html>
