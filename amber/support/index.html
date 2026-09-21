@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amber Archive support</title>
+<meta name="description" content="Help with Amber Archive: how to get your Snapchat export, what to do when the count comes up short, and where your memories actually live.">
+<link rel="canonical" href="https://jimrobinschlupp.com/amber/support/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Amber Archive support">
+<meta property="og:description" content="How to get your export, what the missing count means, and where your memories live.">
+<meta property="og:url" content="https://jimrobinschlupp.com/amber/support/">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index,follow">
+
+<!-- Standalone, like the teardown: no bundle, no JavaScript. A privacy policy
+     that needs a framework to render is a privacy policy nobody can audit. -->
+<style>
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Jost-VF-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+                 U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Jost-VF-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB,
+                 U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Space Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/SpaceMono-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+                 U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --bg: #f7f7f5;
+  --ink: #1a1a1a;
+  --hair: #dedace;
+  --muted: #71695c;
+  --faint: #9b937f;
+  --elev: #ffffff;
+  --amber: #a9701f;
+  --amber-line: #d79b46;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0a;
+    --ink: #eceae4;
+    --hair: #2c2a26;
+    --muted: #9a9488;
+    --faint: #6f695d;
+    --elev: #141414;
+    --amber: #e3a04a;
+    --amber-line: #8a6127;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Jost", system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 18px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+.measure { max-width: 42rem; margin-inline: auto; }
+
+.wordmark-anchor {
+  position: fixed;
+  top: calc(28px + (35px - 1.05rem) / 2);
+  left: 36px;
+  z-index: 62;
+  transition: opacity .3s ease, color .3s ease;
+}
+.wordmark {
+  --wm-track: 0.18em;
+  font-family: "Jost", system-ui, sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  font-weight: 400;
+  white-space: nowrap;
+  color: inherit;
+  text-decoration: none;
+  background: none; border: 0; padding: 0; margin: 0;
+}
+.wordmark__cell { position: relative; display: inline-block; }
+.wordmark__sizer { visibility: hidden; letter-spacing: var(--wm-track); }
+.wordmark__glyph {
+  position: absolute; left: 0; top: 0;
+  font-variation-settings: "wght" 400;
+  transition: font-variation-settings .3s ease;
+}
+@media (hover: hover) {
+  .wordmark:hover .wordmark__glyph { font-variation-settings: "wght" 600; }
+}
+.wordmark:focus-visible { outline: 1px solid var(--amber-line); outline-offset: 6px; }
+@media (max-width: 760px) { .wordmark-anchor { left: 28px; } }
+
+.lede { padding: 104px 0 44px; border-bottom: 1px solid var(--hair); }
+h1 {
+  font-weight: 200;
+  font-size: clamp(34px, 6vw, 62px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin: 0 0 26px;
+  max-width: 20ch;
+}
+.standfirst { font-size: clamp(19px, 2.2vw, 23px); color: var(--muted); font-weight: 300; margin: 0; }
+
+article { padding: 8px 0 0; }
+section { padding: 44px 0; border-bottom: 1px solid var(--hair); }
+h2 {
+  font-weight: 300;
+  font-size: clamp(24px, 3.2vw, 33px);
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  margin: 0 0 18px;
+  max-width: 24ch;
+}
+p { margin: 0 0 18px; }
+p:last-child { margin-bottom: 0; }
+strong { font-weight: 500; }
+em { font-style: italic; color: var(--muted); }
+a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--hair); }
+a:hover { border-color: var(--amber-line); }
+a:focus-visible { outline: 1px solid var(--amber-line); outline-offset: 3px; }
+code {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.86em;
+  background: var(--elev);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1px 5px;
+  word-break: break-word;
+}
+ul { margin: 0 0 18px; padding-left: 1.1em; }
+li { margin-bottom: 9px; }
+li::marker { color: var(--faint); }
+
+.eyebrow {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 12px; letter-spacing: 0.1em;
+  color: var(--amber);
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.tldr {
+  background: var(--elev);
+  border: 1px solid var(--hair);
+  border-radius: 3px;
+  padding: 24px 26px;
+  margin: 34px 0 0;
+}
+.tldr .eyebrow { display: block; margin-bottom: 14px; }
+.tldr p { margin: 0; font-size: 20px; }
+
+.updated { color: var(--faint); font-size: 15px; margin-top: 26px; }
+
+footer.end { padding: 40px 0 84px; color: var(--muted); font-size: 15px; }
+footer.end .eyebrow { display: block; margin-bottom: 14px; }
+footer.end a { color: var(--muted); }
+footer.end a:hover { color: var(--ink); border-color: var(--amber-line); }
+.disclaimer { color: var(--faint); font-size: 13px; margin-top: 22px; }
+</style>
+</head>
+<body>
+
+<a class="wordmark wordmark-anchor" href="/" aria-label="Jim Robin Schlupp, home"><span class="wordmark__cell"><span class="wordmark__sizer">J</span><span class="wordmark__glyph">J</span></span><span class="wordmark__cell"><span class="wordmark__sizer">i</span><span class="wordmark__glyph">i</span></span><span class="wordmark__cell"><span class="wordmark__sizer">m</span><span class="wordmark__glyph">m</span></span><span class="wordmark__cell"><span class="wordmark__sizer">&nbsp;</span></span><span class="wordmark__cell"><span class="wordmark__sizer">R</span><span class="wordmark__glyph">R</span></span><span class="wordmark__cell"><span class="wordmark__sizer">o</span><span class="wordmark__glyph">o</span></span><span class="wordmark__cell"><span class="wordmark__sizer">b</span><span class="wordmark__glyph">b</span></span><span class="wordmark__cell"><span class="wordmark__sizer">i</span><span class="wordmark__glyph">i</span></span><span class="wordmark__cell"><span class="wordmark__sizer">n</span><span class="wordmark__glyph">n</span></span><span class="wordmark__cell"><span class="wordmark__sizer">&nbsp;</span></span><span class="wordmark__cell"><span class="wordmark__sizer">S</span><span class="wordmark__glyph">S</span></span><span class="wordmark__cell"><span class="wordmark__sizer">c</span><span class="wordmark__glyph">c</span></span><span class="wordmark__cell"><span class="wordmark__sizer">h</span><span class="wordmark__glyph">h</span></span><span class="wordmark__cell"><span class="wordmark__sizer">l</span><span class="wordmark__glyph">l</span></span><span class="wordmark__cell"><span class="wordmark__sizer">u</span><span class="wordmark__glyph">u</span></span><span class="wordmark__cell"><span class="wordmark__sizer">p</span><span class="wordmark__glyph">p</span></span><span class="wordmark__cell"><span class="wordmark__sizer">p</span><span class="wordmark__glyph">p</span></span></a>
+
+<div class="wrap">
+  <div class="lede measure">
+    <h1>Amber Archive support</h1>
+    <p class="standfirst">Amber restores your Snapchat Memories export: real dates,
+    real places, captions back on the pictures, in a folder you own.</p>
+
+    <div class="tldr">
+      <span class="eyebrow">Write to me</span>
+      <p><a href="mailto:support@jimrobinschlupp.com">support@jimrobinschlupp.com</a></p>
+    </div>
+
+    <p class="updated">Usually answered within a day or two. It is one person.</p>
+  </div>
+
+  <article class="measure">
+
+    <section>
+      <h2>What to include when you write</h2>
+      <ul>
+        <li>What you did, and what happened instead of what you expected</li>
+        <li>Your iPhone model and iOS version</li>
+        <li>Roughly how many memories your export holds, and how many ZIP files it
+        arrived in</li>
+      </ul>
+      <p>Please do not send your memories or your export. Nothing about helping you
+      needs them, and this app exists so that your archive never has to go to a
+      stranger.</p>
+    </section>
+
+    <section>
+      <h2>The app says some memories were counted but not included</h2>
+      <p>Memories kept in <strong>My Eyes Only</strong> are counted in Snapchat's own
+      index but are never included in any export. Amber shows you both numbers rather
+      than quietly displaying the smaller one. Nothing was lost in the rescue, and
+      there is nothing further to download.</p>
+    </section>
+
+    <section>
+      <h2>The app says part of my export is missing</h2>
+      <!-- This heading quotes the app, so it has to keep quoting it. It read "one of
+           my export files is missing" until 19 August 2026, which was the app's own
+           wording until the day before: ExportAudit counts contiguous stretches of
+           days, never files, and one stretch can be one absent ZIP or seven
+           consecutive ones. It now says "Part of your export is missing" (or "Parts"
+           for several separate stretches). Someone searching this page for the
+           sentence on their screen has to land here. -->
+      <p>That is a different message, and it means something different. Large exports
+      arrive as several ZIP files, and Amber can tell when a whole stretch of your
+      history is absent rather than scattered individual memories. Select all the ZIP
+      files together when importing. If one never downloaded, Amber names the dates it
+      covered so you know which to fetch again.</p>
+    </section>
+
+    <section>
+      <h2>How do I get my export from Snapchat?</h2>
+      <p>In Snapchat: Settings, then My Data. Two switches decide whether you get
+      anything useful: <strong>"Export your Memories" starts switched off</strong>, and
+      the date range has to be set to <strong>All Time</strong> or you receive a window
+      instead of an archive. There is a
+      <a href="/snapchat-memories-export/">full teardown of what arrives and what is
+      wrong with it</a> if you want the detail.</p>
+    </section>
+
+    <section>
+      <h2>Where are my memories?</h2>
+      <p>In the folder you chose during setup, as ordinary files with their real dates
+      and captions on them. They open in Files, they copy anywhere, and they stay
+      exactly where they are if you delete the app.</p>
+    </section>
+
+    <section>
+      <h2>What does the one-time purchase include?</h2>
+      <p>The rescue is free and stays free: the import, the restored dates and places,
+      the captions laid back down, the files in your own folder. The single &euro;5
+      unlocks what happens afterwards, which is a memory each morning, the timeline,
+      the map and the widget. No subscription, no ads, no account.</p>
+      <!-- The private vault was cut from this list on 19 August 2026: it is parked
+           behind Support.vaultEnabled and does not ship. This list now matches the
+           App Store description's own line exactly, which is the point of it. -->
+    </section>
+
+    <section>
+      <h2>I paid, and a new phone shows the app as locked</h2>
+      <p>Open the unlock screen and choose <strong>Restore Purchases</strong>. The
+      purchase belongs to your Apple Account, so it follows you to any device signed in
+      with it.</p>
+    </section>
+
+  </article>
+
+  <footer class="end wrap measure">
+    <span class="eyebrow">About this app</span>
+    <p>Amber Archive is made by <a href="/">Jim Robin Schlupp</a>. There is a
+    <a href="/amber/privacy/">privacy policy</a>, which is short because the app
+    collects nothing.</p>
+    <p class="disclaimer">Not affiliated with, endorsed by, or connected to Snap Inc.
+    Snapchat is a trademark of Snap Inc., used here only to identify their product.</p>
+  </footer>
+</div>
+
+</body>
+</html>
