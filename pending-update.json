@@ -1,0 +1,49 @@
+{
+  "id": "2026-08-24-launch-spell-check-and-wip",
+  "note": "Launch spell check (capital I and YouTube/MacBook in two captions and two recommendation notes, a real 2015–2025 dash, a calmer Writing tagline) plus Overvoice and Jim's Gym dropping their WIP tags to plain 2026.",
+  "ops": [
+    {
+      "target": "bubble",
+      "id": "p1",
+      "set": {
+        "gallery.0.caption.en": "2015–2025"
+      }
+    },
+    {
+      "target": "bubble",
+      "id": "p2",
+      "set": {
+        "gallery.0.caption.en": "An archive of interesting cars I saw during my time in Egypt"
+      }
+    },
+    {
+      "target": "bubble",
+      "id": "b_recs",
+      "set": {
+        "recs.2.note.en": "Can keep your MacBook running even when it's closed, especially useful for keeping AI agents at work when traveling.",
+        "recs.5.note.en": "Howtown makes the best science videos on YouTube"
+      }
+    },
+    {
+      "target": "bubble",
+      "id": "b_hms9kxd",
+      "set": {
+        "tagline.en": "A collection of essays and papers I wrote for university and other occasions."
+      }
+    },
+    {
+      "target": "bubble",
+      "id": "b_zudjxw8",
+      "set": {
+        "year": "2026"
+      }
+    },
+    {
+      "target": "bubble",
+      "id": "gym",
+      "set": {
+        "year": "2026"
+      }
+    }
+  ]
+}
