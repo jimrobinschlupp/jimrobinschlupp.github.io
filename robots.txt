@@ -1,0 +1,5 @@
+# jimrobinschlupp.com
+User-agent: *
+Allow: /
+
+Sitemap: https://jimrobinschlupp.com/sitemap.xml
