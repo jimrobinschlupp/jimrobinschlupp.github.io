@@ -1,0 +1,1 @@
+import{i as e,v as t}from"./index-CXMNe6JG.js";var n=t();function r(){return(0,n.jsx)(e,{children:(0,n.jsx)(`iframe`,{className:`trip-frame`,src:`/trip/index.html?v=${Math.floor(Date.now()/36e5)}`,title:`Trip builder`})})}export{r as TripPage};
