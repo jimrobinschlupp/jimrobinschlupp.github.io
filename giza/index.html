@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Giza · A timeline of the pyramids</title>
+    <meta
+      name="description"
+      content="An interactive timeline of the Giza pyramids: construction, later history, every documented visitor before mass tourism, and the scholarship since."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,10 96,90 4,90' fill='%230a0a0a'/%3E%3C/svg%3E"
+    />
+    <!-- Fonts are self-hosted (same files as the main site) so first paint isn't held on them. -->
+    <link
+      rel="preload"
+      href="/giza/fonts/Jost-VF-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/giza/fonts/SpaceMono-400-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <script>
+      // Apply the saved (or system) theme before first paint to avoid a flash.
+      try {
+        var t = localStorage.getItem("giza-theme");
+        if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="/giza/assets/index-DBJsNsMF.js"></script>
+    <link rel="stylesheet" crossorigin href="/giza/assets/index-je7rbXuZ.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

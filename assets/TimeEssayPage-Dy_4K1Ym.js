@@ -1,0 +1,1 @@
+import{i as e,v as t}from"./index-CXMNe6JG.js";var n=t();function r(){return(0,n.jsx)(e,{children:(0,n.jsx)(`iframe`,{className:`essay-frame`,src:`/time/essay.html`,title:`How We See Time`,allow:`microphone`})})}export{r as TimeEssayPage};
